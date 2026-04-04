@@ -7,7 +7,7 @@
                 Chat with {{ $user->name }}
             </h2>
 
-            <a href="/dashboard" class="text-blue-500 text-sm">
+            <a href="/dashboard" class="text-blue-500 text-sm"> 
                 ← Back
             </a>
         </div>
