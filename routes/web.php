@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\RoomController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,21 +40,29 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
+    // profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
 
-Route::middleware('auth')->group(function () {
+    // friends
     Route::get('/friends/send/{id}', [FriendController::class, 'send']);
     Route::get('/friends/accept/{id}', [FriendController::class, 'accept']);
     Route::get('/friends/reject/{id}', [FriendController::class, 'reject']);
-});
 
-Route::middleware('auth')->group(function () {
+    // chat
     Route::get('/chat/{id}', [ChatController::class, 'index']);
     Route::post('/chat/{id}', [ChatController::class, 'send']);
+
+    // rooms
+    Route::get('/rooms', [RoomController::class, 'index']);
+    Route::get('/room/{slug}', [RoomController::class, 'show']);
+    Route::post('/room/{id}/send', [RoomController::class, 'send']);
+    Route::get('/rooms', [RoomController::class, 'index']);
+    Route::get('/room/{slug}', [RoomController::class, 'show']);
+    Route::post('/rooms/create', [RoomController::class, 'store']);
 });
+
 
 /*
 |--------------------------------------------------------------------------
