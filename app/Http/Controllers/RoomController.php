@@ -19,6 +19,11 @@ class RoomController extends Controller
     public function show($slug)
     {
         $room = Room::where('slug', $slug)->firstOrFail();
+
+        if (!$room->users()->where('user_id', auth()->id())->exists()) {
+            return redirect('/rooms')->with('error', 'Join room first');
+        }
+
         $messages = RoomMessage::with('user')
             ->where('room_id', $room->id)
             ->latest()
@@ -31,6 +36,12 @@ class RoomController extends Controller
 
     public function send(Request $request, $roomId)
     {
+
+        $room = Room::findOrFail($roomId);
+        if (!$room->users()->where('user_id', auth()->id())->exists()) {
+            return response()->json(['error' => 'Join room first'], 403);
+        }
+
         $request->validate([
             'message' => 'required|string'
         ]);
@@ -64,9 +75,31 @@ class RoomController extends Controller
 
         $room = Room::create([
             'name' => $request->name,
-            'slug' => $slug
+            'slug' => $slug,
+            'user_id' => auth()->id(),
         ]);
 
-        return redirect('/room/' . $room->slug);
+        return redirect('/dashboard');
+    }
+
+    public function join($id)
+    {
+        $room = Room::findOrFail($id);
+        $room->users()->syncWithoutDetaching(auth()->id());
+
+        return redirect('/rooms/' . $room->slug);
+    }
+
+    public function delete($id)
+    {
+        $room = Room::findOrFail($id);
+
+        if ($room->user_id != auth()->id()) {
+            return redirect()->back()->with('error', 'Unauthorized');
+        }
+
+        $room->delete();
+
+        return redirect()->back()->with('success', 'Room deleted');
     }
 }

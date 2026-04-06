@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Room;
 use App\Models\FriendRequest;
 
 class DashboardController extends Controller
@@ -24,6 +25,15 @@ class DashboardController extends Controller
             ->where('status', 'accepted')
             ->get();
 
-        return view('dashboard', compact('users', 'requests', 'friends'));
+        $myRooms = Room::where('user_id', auth()->id())
+              ->with('users')
+              ->withCount('users')
+              ->get();
+
+        $allRooms = Room::with('users')
+                       ->withCount('users')
+                       ->get();
+
+        return view('dashboard', compact('users', 'requests', 'friends', 'myRooms', 'allRooms'));
     }
 }

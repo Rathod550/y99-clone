@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,11 +57,21 @@ Route::middleware('auth')->group(function () {
 
     // rooms
     Route::get('/rooms', [RoomController::class, 'index']);
-    Route::get('/room/{slug}', [RoomController::class, 'show']);
+    Route::get('/rooms/{slug}', [RoomController::class, 'show']);
     Route::post('/room/{id}/send', [RoomController::class, 'send']);
     Route::get('/rooms', [RoomController::class, 'index']);
     Route::get('/room/{slug}', [RoomController::class, 'show']);
     Route::post('/rooms/create', [RoomController::class, 'store']);
+    Route::get('/rooms/join/{id}', [RoomController::class, 'join']);
+    Route::delete('/rooms/{id}', [RoomController::class, 'delete']);
+
+    // users
+    Route::get('/users', [UserController::class, 'index']);
+
+    // friends
+    Route::get('/friends/send/{id}', [FriendController::class, 'send']);
+    Route::get('/friends/accept/{id}', [FriendController::class, 'accept']);
+    Route::get('/friends/reject/{id}', [FriendController::class, 'reject']);
 });
 
 

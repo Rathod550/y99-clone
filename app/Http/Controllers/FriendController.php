@@ -2,56 +2,49 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Friend;
 use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\FriendRequest;
-use Illuminate\Support\Facades\Auth;
 
 class FriendController extends Controller
 {
-    // Send Request
+
+    public function index()
+    {
+        $users = User::where('id', '!=', auth()->id())->get();
+
+        $friends = Friend::where(function ($q) {
+            $q->where('sender_id', auth()->id())
+              ->orWhere('receiver_id', auth()->id());
+        })->get();
+
+        return view('users.index', compact('users', 'friends'));
+    }
+    
+    // SEND REQUEST
     public function send($id)
     {
-        // Prevent self request
-        if (auth()->id() == $id) {
-            return back();
-        }
-
-        // Check existing request (both directions)
-        $exists = \App\Models\FriendRequest::where(function ($q) use ($id) {
-            $q->where('sender_id', auth()->id())
-              ->where('receiver_id', $id);
-        })->orWhere(function ($q) use ($id) {
-            $q->where('sender_id', $id)
-              ->where('receiver_id', auth()->id());
-        })->first();
-
-        if ($exists) {
-            return back(); // already exists
-        }
-
-        \App\Models\FriendRequest::create([
+        Friend::create([
             'sender_id' => auth()->id(),
             'receiver_id' => $id,
+            'status' => 'pending'
         ]);
 
         return back();
     }
 
-    // Accept Request
+    // ACCEPT
     public function accept($id)
     {
-        $request = FriendRequest::findOrFail($id);
-        $request->update(['status' => 'accepted']);
+        $friend = Friend::findOrFail($id);
+        $friend->update(['status' => 'accepted']);
 
         return back();
     }
 
-    // Reject Request
+    // REJECT
     public function reject($id)
     {
-        $request = FriendRequest::findOrFail($id);
-        $request->update(['status' => 'rejected']);
+        Friend::where('id', $id)->delete();
 
         return back();
     }

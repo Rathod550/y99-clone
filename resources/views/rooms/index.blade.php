@@ -17,7 +17,7 @@
 
         <div class="bg-gray-800 rounded-xl p-4 shadow-lg flex flex-col md:flex-row gap-3 items-center">
 
-            <div class="flex-1 w-full relative">
+            <div class="flex-1 w-full">
                 <input 
                     type="text" 
                     name="name"
@@ -37,10 +37,36 @@
     <!-- ROOM LIST -->
     <div class="space-y-3">
         @foreach($rooms as $room)
-            <a href="/room/{{ $room->slug }}" 
-               class="block bg-gray-800 p-4 rounded hover:bg-gray-700">
-                {{ $room->name }}
-            </a>
+
+            @php
+                $joined = $room->users->contains(auth()->id());
+            @endphp
+
+            <div class="bg-gray-800 p-4 rounded flex justify-between items-center hover:bg-gray-700">
+
+                <div>
+                    <p class="font-semibold">{{ $room->name }}</p>
+                    <p class="text-sm text-gray-400">
+                        {{ $room->users_count ?? 0 }} users
+                    </p>
+                </div>
+
+                @if($joined)
+                    <!-- ✅ ENTER -->
+                    <a href="/rooms/{{ $room->slug }}" 
+                       class="bg-green-500 px-4 py-2 rounded text-sm">
+                        Enter
+                    </a>
+                @else
+                    <!-- ✅ JOIN -->
+                    <a href="/rooms/join/{{ $room->id }}" 
+                       class="bg-blue-500 px-4 py-2 rounded text-sm">
+                        Join
+                    </a>
+                @endif
+
+            </div>
+
         @endforeach
     </div>
 
