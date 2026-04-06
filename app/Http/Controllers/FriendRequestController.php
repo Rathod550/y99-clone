@@ -3,35 +3,35 @@
 namespace App\Http\Controllers;
 
 use App\Models\FriendRequest;
-use Illuminate\Support\Facades\DB;
 
 class FriendRequestController extends Controller
 {
-    // 📌 Show Requests
     public function index()
     {
         $requests = FriendRequest::with('sender')
             ->where('receiver_id', auth()->id())
+            ->where('status', 'pending')
+            ->latest()
             ->get();
 
         return view('friends.requests', compact('requests'));
     }
 
-    // 📌 Send Request
-    public function send($userId)
+    // ✅ ADD THIS METHOD
+    public function send($id)
     {
-        $exists = FriendRequest::where(function ($q) use ($userId) {
+        $exists = FriendRequest::where(function ($q) use ($id) {
             $q->where('sender_id', auth()->id())
-              ->where('receiver_id', $userId);
-        })->orWhere(function ($q) use ($userId) {
-            $q->where('sender_id', $userId)
+              ->where('receiver_id', $id);
+        })->orWhere(function ($q) use ($id) {
+            $q->where('sender_id', $id)
               ->where('receiver_id', auth()->id());
         })->exists();
 
         if (!$exists) {
             FriendRequest::create([
                 'sender_id' => auth()->id(),
-                'receiver_id' => $userId,
+                'receiver_id' => $id,
                 'status' => 'pending'
             ]);
         }
@@ -39,27 +39,19 @@ class FriendRequestController extends Controller
         return back();
     }
 
-    // 📌 Accept Request
     public function accept($id)
     {
         $req = FriendRequest::findOrFail($id);
-
-        DB::table('friends')->insert([
-            'user_one' => $req->sender_id,
-            'user_two' => $req->receiver_id,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        $req->delete();
+        $req->update(['status' => 'accepted']);
 
         return back();
     }
 
-    // 📌 Reject Request
     public function reject($id)
     {
-        FriendRequest::findOrFail($id)->delete();
+        $req = FriendRequest::findOrFail($id);
+        $req->update(['status' => 'rejected']);
+
         return back();
     }
 }

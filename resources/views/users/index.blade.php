@@ -8,67 +8,59 @@
 
 @foreach($users as $user)
 
-    <div class="bg-gray-800 p-4 rounded-xl flex items-center justify-between">
+    @if($user->id != auth()->id())
 
-        <!-- USER INFO -->
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center">
-                {{ strtoupper(substr($user->name, 0, 1)) }}
-            </div>
-
-            <div>
-                <div class="font-medium">{{ $user->name }}</div>
-                <div class="text-xs text-gray-400">Available</div>
-            </div>
-        </div>
-
-        <!-- 🔥 FRIEND LOGIC -->
         @php
-            $relation = $friends->first(function ($f) use ($user) {
-                return ($f->sender_id == auth()->id() && $f->receiver_id == $user->id)
-                    || ($f->receiver_id == auth()->id() && $f->sender_id == $user->id);
+            $isFriend = $requests->first(function ($r) use ($user) {
+                return (
+                    ($r->sender_id == auth()->id() && $r->receiver_id == $user->id)
+                    || ($r->receiver_id == auth()->id() && $r->sender_id == $user->id)
+                ) && $r->status == 'accepted';
+            });
+
+            $isRequested = $requests->first(function ($r) use ($user) {
+                return (
+                    ($r->sender_id == auth()->id() && $r->receiver_id == $user->id)
+                    || ($r->receiver_id == auth()->id() && $r->sender_id == $user->id)
+                ) && $r->status == 'pending';
             });
         @endphp
 
-        @if(!$relation)
+        <div class="flex items-center justify-between bg-gray-800 px-4 py-3 rounded-lg">
 
-            <a href="/friends/send/{{ $user->id }}"
-               class="bg-blue-500 px-4 py-2 rounded-lg text-sm">
-                Add
-            </a>
+            <!-- User Info -->
+            <div>
+                <p class="text-white font-medium">{{ $user->name }}</p>
+                <p class="text-xs text-gray-400">Active user</p>
+            </div>
 
-        @elseif($relation->status == 'pending')
+            <!-- Actions -->
+            <div>
 
-            @if($relation->sender_id == auth()->id())
+                @if($isFriend)
+                    <span class="text-green-400 text-xs font-semibold">
+                        Friends
+                    </span>
 
-                <span class="text-yellow-400 text-sm">Pending</span>
+                @elseif($isRequested)
+                    <span class="text-yellow-400 text-xs font-semibold">
+                        Requested
+                    </span>
 
-            @else
+                @else
+                    <form action="{{ route('requests.send', $user->id) }}" method="POST">
+                        @csrf
+                        <button class="bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded text-xs font-semibold">
+                            Add Friend
+                        </button>
+                    </form>
+                @endif
 
-                <div class="flex gap-2">
-                    <a href="/friends/accept/{{ $relation->id }}"
-                       class="bg-green-500 px-3 py-1 rounded text-sm">
-                        Accept
-                    </a>
+            </div>
 
-                    <a href="/friends/reject/{{ $relation->id }}"
-                       class="bg-red-500 px-3 py-1 rounded text-sm">
-                        Reject
-                    </a>
-                </div>
+        </div>
 
-            @endif
-
-        @elseif($relation->status == 'accepted')
-
-            <a href="/chat/{{ $user->id }}"
-               class="bg-green-500 px-4 py-2 rounded-lg text-sm">
-                Chat
-            </a>
-
-        @endif
-
-    </div>
+    @endif
 
 @endforeach
 

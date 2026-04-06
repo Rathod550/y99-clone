@@ -3,19 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Friend;
+use Illuminate\Support\Facades\DB;
+use App\Models\FriendRequest;
 
 class UserController extends Controller
 {
     public function index()
     {
-        $users = User::where('id', '!=', auth()->id())->get();
+        $currentUser = auth()->id();
 
-        $friends = Friend::where(function ($q) {
-            $q->where('sender_id', auth()->id())
-              ->orWhere('receiver_id', auth()->id());
+        // all users except self
+        $users = User::where('id', '!=', $currentUser)->get();
+
+        // all friend requests (sent + received)
+        $requests = FriendRequest::where(function ($q) use ($currentUser) {
+            $q->where('sender_id', $currentUser)
+              ->orWhere('receiver_id', $currentUser);
         })->get();
 
-        return view('users.index', compact('users', 'friends'));
+        // all friends
+        $friends = DB::table('friends')->get();
+
+        return view('users.index', compact('users', 'friends', 'requests'));
     }
 }

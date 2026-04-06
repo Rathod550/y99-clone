@@ -8,6 +8,7 @@ use App\Http\Controllers\FriendController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\FriendRequestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,10 +69,11 @@ Route::middleware('auth')->group(function () {
     // users
     Route::get('/users', [UserController::class, 'index']);
 
-    // friends
-    Route::get('/friends/send/{id}', [FriendController::class, 'send']);
-    Route::get('/friends/accept/{id}', [FriendController::class, 'accept']);
-    Route::get('/friends/reject/{id}', [FriendController::class, 'reject']);
+    // friend requests
+    Route::get('/requests', [FriendRequestController::class, 'index'])->name('requests');
+    Route::post('/send-request/{id}', [FriendRequestController::class, 'send'])->name('requests.send');
+    Route::post('/requests/{id}/accept', [FriendRequestController::class, 'accept'])->name('requests.accept');
+    Route::post('/requests/{id}/reject', [FriendRequestController::class, 'reject'])->name('requests.reject');
 });
 
 
